@@ -25,33 +25,118 @@ janejr11@wfu.edu
 
 // pin declarations
 // directional controls
-#define ud 0 // up and down movement of the joystick
-#define lr 1 // left and right movement of the joystick
+static const int ud = 20; // up and down movement of the joystick
+static const int lr = 21; // left and right movement of the joystick
 
 // button declarations
-#define right 2
-#define left 3
-#define ctrl 4
-#define shift 5
+static const int right = 2;
+static const int left = 3;
+static const int ctrl = 4;
+static const int shift = 5;
 
-// status LED
-#define led 11 // on when input is registered, blink for combined keypresses
+int xThresh; // threshold value (middle position) for the x axis
+int yThresh; // threshold value (middle position) for the y axis
+
+// function definitions
+int calibrateX();
+int calibrateY();
 
 void setup(){
   pinMode (ud, INPUT);
   pinMode (lr, INPUT); // might need pullup or analog reading setup
   
   pinMode(right, INPUT_PULLUP);
-  pinMode(left, INPUT_PULLUP);
+  pinMode(left, INPUT_PULLUP); 
   pinMode(ctrl, INPUT_PULLUP);
   pinMode(shift, INPUT_PULLUP);
   
-  pinMode(led, OUTPUT);
+  //pinMode(led, OUTPUT);
   
+  xThresh = calibrateX();
+  yThresh = calibrateY();
 }
+
+
 
 void loop(){
+  // mouse movement
+  // read and threshold values
+  int x = analogRead(lr) - xThresh;
+  int y = analogRead(ud) - yThresh;
+  
+  // --X--
+  int xShift;
+  if (x >= 300) // fast R
+    xShift = 10;
+  else if (x >= 150) // medium R
+    xShift = x/20-5;
+  else if (x >= 10) // slow R
+    xShift = x/60;
+  else if (x >= -10) // nothing
+    xShift = 0;
+  else if (x >= -150) // slow L
+    xShift = x/60;
+  else if (x >= -300) // medium L
+    xShift = x/20+5;
+  else                // fast L
+    xShift = -10;
+
+  
+  
+  // --Y--
+  int yShift;
+  if (y >= 300) // fast U
+    yShift = 10;
+  else if (y >= 150) // medium U
+    yShift = y/20-5;
+  else if (y >= 10) // slow U
+    yShift = y/60;
+  else if (y >= -10) // no movement
+    yShift = 0;
+  else if (y >= -150) // slow D
+    yShift = y/60;
+  else if (y >= -300) // medium D
+    yShift = y/20+5;
+  else
+    yShift = -10;
+  
+  Mouse.move(xShift,yShift);
+  Serial.print("X Shift: ");
+  Serial.println(xShift);
+  delay(20);
+  
+  // button presses
+  
   
 }
 
+// read 10 values to calculate the threshold x sensor values
+int calibrateX(){
+  int xSum;
+  xSum = 0;
+  
+  for (int i=0; i<10; i++){
+    xSum = xSum + analogRead(lr);
+  }
+  
+  Serial.print("X Threshold: ");
+  Serial.println(xSum/10);
+  
+  return xSum/10;
+}
+
+// read 10 values to calculate the threshold y sensor values
+int calibrateY(){
+  int ySum;
+  ySum = 0;
+  
+  for (int i=0; i<10; i++){
+    ySum = ySum + analogRead(ud);
+  }
+  
+  Serial.print("Y Threshold: ");
+  Serial.println(ySum/10);
+  
+  return ySum/10;
+}
 
