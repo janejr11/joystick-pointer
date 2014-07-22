@@ -23,6 +23,9 @@ janejr11@wfu.edu
 (804) 484-4206
 */
 
+// mouse sensitivity, higher numbers -> less reactive mouse
+static const int mouseDelay = 20;
+
 // pin declarations
 // directional controls
 static const int ud = 20; // up and down movement of the joystick
@@ -34,12 +37,18 @@ static const int left = 3;
 static const int ctrl = 4;
 static const int shift = 5;
 
+static const int led = 11; // led pin to report stickyKeys
+
 int xThresh; // threshold value (middle position) for the x axis
 int yThresh; // threshold value (middle position) for the y axis
 
 // function definitions
 int calibrateX();
 int calibrateY();
+
+// toggle status of buttons
+boolean ctrlPressed;
+boolean shiftPressed;
 
 void setup(){
   pinMode (ud, INPUT);
@@ -54,6 +63,9 @@ void setup(){
   
   xThresh = calibrateX();
   yThresh = calibrateY();
+  
+  ctrlPressed = false;
+  shiftPressed = false;
 }
 
 
@@ -103,11 +115,77 @@ void loop(){
   Mouse.move(xShift,yShift);
   Serial.print("X Shift: ");
   Serial.println(xShift);
-  delay(20);
-  
-  // button presses
+  delay(mouseDelay); // affects sensitivity
   
   
+  // left mouse
+  
+  // in order to click and drag, the button can be pressed for a half second,
+  // then pressed again to release the key, short presses result in only one click
+  // The circuit is sampled five times in order to assertain if the button has been
+  // held down constantly
+  if (digitalRead(left) == LOW){ // the left mouse button has been pressed
+    if (Mouse.isPressed()){ // if the mouse was previously toggled, release it
+      Mouse.release();
+      digitalWrite(led,HIGH); // dim led
+    }
+    delay(100);
+  }
+  if (digitalRead(left) == HIGH) // if the button has been released, click once
+    Mouse.click();
+  delay (100);
+  if (digitalRead(left) == HIGH) // if the button has been released, click once
+    Mouse.click();
+  delay (100);
+  if (digitalRead(left) == HIGH) // if the button has been released, click once
+    Mouse.click();
+  delay (100);
+  if (digitalRead(left) == HIGH) // if the button has been released, click once
+    Mouse.click();
+  delay (100);
+  if (digitalRead(left) == HIGH) // if the button has been released, click once
+    Mouse.click();
+  else{ // if the button was held down for a half second, enable click-and-drag mode
+    Mouse.press();
+    digitalWrite(led,LOW); // light led
+    delay(500); // delay for a half second to prevent immediate relase of key
+  }
+  
+  // right mouse
+  if (digitalRead(right) == LOW)
+    Mouse.click(MOUSE_RIGHT);
+  
+  // ctrl
+  if (digitalRead(ctrl) == LOW){ // ctrl has been pressed
+    if (ctrlPressed == true){ // if ctrl was previously toggled, release it
+      Keyboard.release(KEY_LEFT_CTRL);
+      ctrlPressed = false;
+      // digitalWrite(ctrlLED, HIGH); // dim the ctrl LED
+      delay(500); // give time to release the button before resampling
+      }
+    else { // toggle the key so that the next action will be 'ctrl+action'
+      Keyboard.press(KEY_LEFT_CTRL);
+      ctrlPressed = true;
+      // digitalWrite(ctrlLED,LOW); // light ctrl LED
+      delay(500); // give time to release the button before resampling
+    }
+  }
+  
+  // shift
+  if (digitalRead(shift) == LOW){ // shift has been pressed
+    if (shiftPressed == true){ // if shift was previously toggled, release it
+      Keyboard.release(KEY_LEFT_SHIFT);
+      shiftPressed = false;
+      // digitalWrite(shiftLED,HIGH); // dim the shift LED
+      delay(500); // give time to release the button before resampling
+      }
+    else { // toggle the key so that the next action will be 'shift+action'
+      Keyboard.press(KEY_LEFT_SHIFT);
+      shiftPressed = true;
+      // digitalWrite(shiftLED,LOW); // light the shift LED
+      delay(500); // give time to release the button before resampling
+    }
+  }
 }
 
 // read 10 values to calculate the threshold x sensor values
