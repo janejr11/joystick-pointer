@@ -11,7 +11,7 @@
  http://www.pjrc.com/teensy/td_download.html
  http://www.pjrc.com/teensy/loader_vista.html
  The Arduino IDE is being used and is necessary to view this file so I assume you have it already but for
- the sake of completeness, the download is below:
+ the sake of completeness, the link is below:
  http://arduino.cc/en/main/software
  
  This software has been developed under the direction of Dr. Victor Pauca in the Wake Forest University
@@ -38,6 +38,9 @@ static const int ctrl = 2;
 static const int shift = 3;
 
 static const int led = 11; // led pin to report stickyKeys
+static const int leftLED = 4;
+static const int ctrlLED = 5;
+static const int shiftLED = 6;
 
 int xThresh; // threshold value (middle position) for the x axis
 int yThresh; // threshold value (middle position) for the y axis
@@ -128,7 +131,7 @@ void loop(){
     boolean clicked = false;
     if (Mouse.isPressed()){ // if the mouse was previously toggled, release it
       Mouse.release();
-      digitalWrite(led,LOW); // dim toggle led
+      digitalWrite(leftLED,LOW); // dim toggle led
       clicked = true;
     }
     delay(100);
@@ -163,7 +166,7 @@ void loop(){
     }
     if (digitalRead(left) == LOW){ // if the button was held down for a half second, enable click-and-drag mode
       Mouse.press();
-      digitalWrite(led,HIGH); // light toggle led
+      digitalWrite(leftLED,HIGH); // light toggle led
       delay(500); // delay for a half second to prevent immediate relase of key
     }
   }
@@ -179,15 +182,18 @@ void loop(){
   if (digitalRead(ctrl) == LOW){ // ctrl has been pressed
     if (ctrlPressed == true){ // if ctrl was previously toggled, release it
       Keyboard.release(KEY_LEFT_CTRL);
+      
+      
+      
       ctrlPressed = false;
-      digitalWrite(led,LOW);
+      digitalWrite(ctrlLED,LOW);
       // digitalWrite(ctrlLED, HIGH); // dim the ctrl LED
       delay(500); // give time to release the button before resampling
     }
     else { // toggle the key so that the next action will be 'ctrl+action'
       Keyboard.press(KEY_LEFT_CTRL);
       ctrlPressed = true;
-      digitalWrite(led,HIGH);
+      digitalWrite(ctrlLED,HIGH);
       // digitalWrite(ctrlLED,LOW); // light ctrl LED
       delay(500); // give time to release the button before resampling
     }
@@ -199,13 +205,13 @@ void loop(){
      if (shiftPressed == true){ // if shift was previously toggled, release it
        Keyboard.release(KEY_LEFT_SHIFT);
        shiftPressed = false;
-       digitalWrite(led,LOW);
+       digitalWrite(shiftLED,LOW);
        // digitalWrite(shiftLED,HIGH); // dim the shift LED
        delay(500); // give time to release the button before resampling
      }
      else { // toggle the key so that the next action will be 'shift+action'
        Keyboard.press(KEY_LEFT_SHIFT);
-       digitalWrite(led,HIGH);
+       digitalWrite(shiftLED,HIGH);
        shiftPressed = true;
        // digitalWrite(shiftLED,LOW); // light the shift LED
        delay(500); // give time to release the button before resampling
